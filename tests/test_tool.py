@@ -26,3 +26,8 @@ class ParityTests(unittest.TestCase):
         db = self.db()
         db.execute('DELETE FROM lexical_fts WHERE id=?', ('doc-1',))
         self.assertIn('FTS: missing active source doc-1', check(db)['findings'])
+
+    def test_fts_body_changed_but_probe_remains(self):
+        db = self.db()
+        db.execute('UPDATE lexical_fts SET body=? WHERE id=?', ('quartzalpha outdated guide', 'doc-1'))
+        self.assertIn('FTS: stale body doc-1', check(db)['findings'])

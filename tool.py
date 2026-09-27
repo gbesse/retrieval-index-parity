@@ -26,11 +26,17 @@ def check(connection):
                 findings.append(f'{index_name}: stale hash {key}')
             if index[key]['acl'] != source[key]['acl']:
                 findings.append(f'{index_name}: ACL mismatch {key}')
-    fts_ids = {r['id'] for r in connection.execute('SELECT id FROM lexical_fts')}
+    fts_rows = [dict(r) for r in connection.execute('SELECT id, body FROM lexical_fts')]
+    fts_ids = {r['id'] for r in fts_rows}
+    if len(fts_ids) != len(fts_rows):
+        findings.append('FTS: duplicate document IDs')
     for key in sorted(fts_ids - source.keys()):
         findings.append(f'FTS: orphan or tombstone {key}')
     for key in sorted(source.keys() - fts_ids):
         findings.append(f'FTS: missing active source {key}')
+    for row in fts_rows:
+        if row['id'] in source and digest(row['body']) != digest(source[row['id']]['body']):
+            findings.append(f'FTS: stale body {row["id"]}')
     for key in sorted(source.keys() & lexical.keys() & fts_ids):
         probe = lexical[key]['probe']
         if not probe.isalnum() or not probe in source[key]['body']:
