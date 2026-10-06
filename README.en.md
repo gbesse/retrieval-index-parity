@@ -1,5 +1,11 @@
 # retrieval-index-parity
 
+## New: Leviathan group boundary
+
+`python3 tenant_scope.py tenant-demo --lang en` shows another customer's result in strict search (successful demo exits 0). For real `leviathan --json search` output run `python3 tenant_scope.py check search.json --leviathan --group customer-a --policy strict --lang en`. Policy `labeled_fallback` allows `other_groups` only when each card has `other_group: true`. Without `--leviathan`, the normalized format is `{requested_group, policy, results:[{group,label}]}`. This checks a capture, not upstream ACLs; documented fallback is not by itself evidence of a leak.
+
+**Related project:** [Leviathan](https://github.com/elstongun/leviathan) exposes an explicit `OTHER CUSTOMER` fallback. This command reads its JSON output, without affiliation or a Leviathan patch.
+
 Checks IDs, hashes and ACLs across source, FTS5 and vector metadata.
 
 [Français](README.md) · [English](README.en.md) · [Español](README.es.md)

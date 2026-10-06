@@ -1,5 +1,11 @@
 # retrieval-index-parity
 
+## Nouveau : frontière des groupes Leviathan
+
+`python3 tenant_scope.py tenant-demo --lang fr` montre une réponse d’un autre client dans une recherche stricte (démo réussie : code 0). Pour la sortie réelle de `leviathan --json search`, utilisez `python3 tenant_scope.py check search.json --leviathan --group customer-a --policy strict --lang fr`. La politique `labeled_fallback` autorise les résultats `other_groups` si chaque carte porte `other_group: true`. Le mode sans `--leviathan` accepte le format normalisé `{requested_group, policy, results:[{group,label}]}`. Il contrôle une capture, pas les ACL en amont ; ne concluez pas à une fuite à partir du repli documenté.
+
+**Projet voisin :** [Leviathan](https://github.com/elstongun/leviathan) expose un repli `OTHER CUSTOMER` explicite. Cette commande lit sa sortie JSON, sans affiliation ni correctif de Leviathan.
+
 Contrôle la parité des identifiants, empreintes et ACL entre source, FTS5 et métadonnées vectorielles.
 
 [Français](README.md) · [English](README.en.md) · [Español](README.es.md)

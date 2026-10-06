@@ -1,5 +1,11 @@
 # retrieval-index-parity
 
+## Nuevo: límite de grupos de Leviathan
+
+`python3 tenant_scope.py tenant-demo --lang es` muestra un resultado de otro cliente en una búsqueda estricta (la demo correcta sale con código 0). Para la salida real de `leviathan --json search`, ejecute `python3 tenant_scope.py check search.json --leviathan --group customer-a --policy strict --lang es`. La política `labeled_fallback` permite `other_groups` solo si cada tarjeta tiene `other_group: true`. Sin `--leviathan`, el formato normalizado es `{requested_group, policy, results:[{group,label}]}`. Comprueba una captura, no las ACL previas; el repliegue documentado no demuestra por sí mismo una filtración.
+
+**Proyecto relacionado:** [Leviathan](https://github.com/elstongun/leviathan) expone un repliegue `OTHER CUSTOMER` explícito. Esta orden lee su salida JSON, sin afiliación ni parche para Leviathan.
+
 Comprueba ID, huellas y ACL entre fuente, FTS5 y metadatos vectoriales.
 
 [Français](README.md) · [English](README.en.md) · [Español](README.es.md)
