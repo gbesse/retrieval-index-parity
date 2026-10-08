@@ -1,0 +1,1 @@
+[{"Plan":{"Node Type":"Limit","Actual Rows":100,"Actual Loops":1,"Plans":[{"Node Type":"Index Scan","Index Name":"idx_memory_units_text_search","Relation Name":"memory_units","Actual Rows":100,"Actual Loops":1}]},"Execution Time":506.0}]
