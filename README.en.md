@@ -1,5 +1,17 @@
 # retrieval-index-parity
 
+## New: do relevant memories survive reranking?
+
+`python3 recall_rank.py demo --lang en` shows a **synthetic** multilingual control: three judged IDs stay in the top 12 for FR/EN/ES, but move from ranks 1/2/3 to 70/74/71 for one Chinese case. The shape is inspired by [Hindsight #5519](https://github.com/vectorize-io/hindsight/issues/5519), not measured by this tool on Hindsight. Unlike answer-level evaluation in [Ragas](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_recall/), this checks exact judged IDs between two captured ranking stages without a judge model.
+
+```sh
+python3 recall_rank.py check examples/recall-rank/multilingual.json --lang en --json
+```
+
+Input: `{ "cases": [{ "case_id": "example", "language": "en", "k": 12, "relevant_ids": ["a"], "before": ["a", "b"], "after": ["b", "a"] }] }`. Arrays are complete ordered captures of the supplied stage, using stable IDs, not scores. IDs in each array and case IDs must be unique; relevance judgments must be explicit and nonempty. `k` is 1–10000. Empty rankings are allowed. A relevant ID absent from a stage has `null` rank, not zero. The report lists lost top-k IDs, exact ranks, Recall@k, reciprocal rank at k and binary nDCG@k. Per-language values are arithmetic means across cases, so a language regression stays visible. Any decrease in one of these three metrics fails the gate, including a drop within top-k; this strict policy deliberately does not trade a worse first result against a better recall.
+
+Exit codes: **0** no measured regression, **2** regression, **1** invalid input. Demo exits 0 when the expected regression is found. Python 3.11+, no dependency or network. Saved JSON is limited to 10 MB. No query or document text is printed; case and judged document IDs appear in reports. Ground truth is supplied by you: incomplete labels can produce misleading metrics. This is no automatic Hindsight adapter, no semantic relevance estimator and no proof of multilingual model quality. FR/EN/ES changes only the report language; Chinese metadata and user content remain unchanged.
+
 ## New: is my BM25 index actually used?
 
 `python3 bm25_plan.py demo --lang en` shows a plan that misses the expected index followed by one that uses it. The captures are **reconstructed** from [Hindsight #5408](https://github.com/vectorize-io/hindsight/issues/5408); displayed timings are not benchmarks run by this tool. For a real `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` capture of a SELECT query you control:
@@ -8,7 +20,7 @@
 python3 bm25_plan.py check plan.json --index idx_memory_units_text_search --catalog indexes.json --lang en
 ```
 
-`indexes.json` is a JSON array of index names or `pg_indexes` rows with `indexname`. Without that catalog, the tool only observes that the index did not appear in the execution; it cannot prove the index exists. Exit codes: 0 used, 2 not used, 3 incomplete capture or index absent from catalog, 1 invalid input. It does not connect to PostgreSQL or print query text. A plan alone cannot explain *why* the planner chose another path.
+`indexes.json` is a JSON array of index names or `pg_indexes` rows with `indexname`. Without that catalog, the tool only observes that the index did not appear in the execution; it cannot prove the index exists. Exit codes: 0 used, 2 not used, 3 incomplete capture or index absent from catalog, 1 invalid input. It does not connect to PostgreSQL or print query text. A plan alone cannot explain _why_ the planner chose another path.
 
 **Related projects:** [Hindsight](https://github.com/vectorize-io/hindsight) uses BM25 retrieval in this case; [VectorChord BM25](https://github.com/supervc-stack/VectorChord-bm25) supplies the index. This independent checker reads exported plans, with no direct integration or affiliation.
 
