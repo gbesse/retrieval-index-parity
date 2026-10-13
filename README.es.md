@@ -1,5 +1,17 @@
 # retrieval-index-parity
 
+## Nuevo: ¿los recuerdos relevantes sobreviven a la reclasificación?
+
+`python3 recall_rank.py demo --lang es` muestra un control multilingüe **sintético**: tres identificadores anotados permanecen en el top 12 en FR/EN/ES, pero pasan de las posiciones 1/2/3 a 70/74/71 en un caso chino. Su forma se inspira en [Hindsight #5519](https://github.com/vectorize-io/hindsight/issues/5519), sin medir Hindsight con esta herramienta. A diferencia de la evaluación de respuestas de [Ragas](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_recall/), compara identificadores anotados exactos entre dos etapas capturadas, sin modelo evaluador.
+
+```sh
+python3 recall_rank.py check examples/recall-rank/multilingual.json --lang es --json
+```
+
+Entrada: `{ "cases": [{ "case_id": "example", "language": "es", "k": 12, "relevant_ids": ["a"], "before": ["a", "b"], "after": ["b", "a"] }] }`. Los arrays son capturas ordenadas completas de la etapa aportada, con identificadores estables, no puntuaciones. Los identificadores de cada array y de los casos son únicos; las anotaciones de relevancia son explícitas y no vacías. `k` va de 1 a 10000. Se permiten clasificaciones vacías. Un identificador relevante ausente tiene posición `null`, nunca cero. El informe ofrece identificadores fuera del top-k, posiciones exactas, Recall@k, rango recíproco a k y nDCG@k binario. Los valores por idioma son medias aritméticas por caso, para mantener visible la regresión de un idioma. Cualquier descenso de una de las tres métricas falla el control, incluso dentro del top-k; esta política estricta no compensa un primer resultado peor con una mejor recuperación.
+
+Códigos de salida: **0** sin regresión medida, **2** regresión, **1** entrada no válida. La demo sale con 0 al detectar la regresión prevista. Python 3.11+, sin dependencias ni red. El JSON se limita a 10 MB. No se imprime texto de consultas ni documentos; los informes incluyen identificadores de casos y documentos anotados. Usted aporta las anotaciones: etiquetas incompletas pueden distorsionar las métricas. Sin adaptador automático de Hindsight, estimación semántica ni prueba de calidad multilingüe de un modelo. FR/EN/ES solo cambia el idioma del informe; los metadatos chinos y el contenido del usuario se conservan.
+
 ## Nuevo: ¿se utiliza realmente mi índice BM25?
 
 `python3 bm25_plan.py demo --lang es` muestra un plan que no usa el índice esperado y otro que sí lo usa. Las capturas se han **reconstruido** a partir de [Hindsight #5408](https://github.com/vectorize-io/hindsight/issues/5408); los tiempos mostrados no son mediciones realizadas por esta herramienta. Para una captura real de `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` sobre una consulta SELECT que controle:
@@ -8,7 +20,7 @@
 python3 bm25_plan.py check plan.json --index idx_memory_units_text_search --catalog indexes.json --lang es
 ```
 
-`indexes.json` es una lista JSON de nombres de índices o de filas `pg_indexes` con `indexname`. Sin ese catálogo, la herramienta solo observa que el índice no aparece en la ejecución; no demuestra que exista. Códigos de salida: 0 utilizado, 2 no utilizado, 3 captura incompleta o índice ausente del catálogo, 1 entrada no válida. No se conecta a PostgreSQL ni imprime la consulta. Un plan por sí solo no explica *por qué* el planificador eligió otra ruta.
+`indexes.json` es una lista JSON de nombres de índices o de filas `pg_indexes` con `indexname`. Sin ese catálogo, la herramienta solo observa que el índice no aparece en la ejecución; no demuestra que exista. Códigos de salida: 0 utilizado, 2 no utilizado, 3 captura incompleta o índice ausente del catálogo, 1 entrada no válida. No se conecta a PostgreSQL ni imprime la consulta. Un plan por sí solo no explica _por qué_ el planificador eligió otra ruta.
 
 **Proyectos relacionados:** [Hindsight](https://github.com/vectorize-io/hindsight) utiliza la búsqueda BM25 en este caso; [VectorChord BM25](https://github.com/supervc-stack/VectorChord-bm25) proporciona el índice. Este control independiente lee planes exportados, sin integración directa ni afiliación.
 
